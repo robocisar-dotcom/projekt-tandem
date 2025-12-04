@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 LED Control</title>
+</head>
+<body>
+  <h2>ESP32 LED BLE Ovládanie</h2>
+  <button onclick="connectBLE()">Pripojiť</button>
+  <button onclick="sendCmd('ON')">ZAP</button>
+  <button onclick="sendCmd('OFF')">VYP</button>
+
+<script>
+let device, server, service, characteristic;
+const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
+const CHARACTERISTIC_UUID = "abcd1234-1234-1234-1234-abcdef123456";
+
+async function connectBLE() {
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ name: "ESP32_LED" }],
+      optionalServices: [SERVICE_UUID]
+    });
+    server = await device.gatt.connect();
+    service = await server.getPrimaryService(SERVICE_UUID);
+    characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+    alert("Pripojené k ESP32!");
+  } catch(e) { alert(e); }
+}
+
+async function sendCmd(cmd){
+  if(!characteristic){ alert("Najprv sa pripoj!"); return; }
+  await characteristic.writeValue(new TextEncoder().encode(cmd));
+}
+</script>
+</body>
+</html>
