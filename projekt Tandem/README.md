@@ -3,7 +3,9 @@
 Webová aplikácia na plánovanie káblov a modulov s ukladaním do [Google Sheets](https://docs.google.com/spreadsheets/d/1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk/edit).
 
 **Živá stránka:** https://aquamarine-sunburst-ed5bc5.netlify.app  
-**GitHub:** https://github.com/robocisar-dotcom/projekt-tandem
+**GitHub:** https://github.com/robocisar-dotcom/projekt-tandem  
+
+Kompletný kontext projektu: **`PROJEKT_KONTEXT.md`**
 
 ---
 
