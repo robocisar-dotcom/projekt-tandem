@@ -117,6 +117,21 @@ body {
   margin-top: 1rem;
 }
 
+.sidebar-list--test {
+  margin-top: 0.5rem;
+}
+
+.sidebar-item--test {
+  color: #7c3aed;
+  font-weight: 600;
+  background: #f5f3ff;
+  border: 1px dashed #c4b5fd;
+}
+
+.sidebar-item--test:hover {
+  background: #ede9fe;
+}
+
 .sheets-sync-status {
   margin-top: 0.5rem;
   padding: 0 0.85rem;

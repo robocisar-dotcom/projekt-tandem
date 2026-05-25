@@ -633,6 +633,21 @@ if (btnOpenSheets) {
     drag = null;
   });
 
+  function runTestModulKokot() {
+    const el = createMarker("kokot", "modul");
+    el.style.left = "50%";
+    el.style.top = "50%";
+    updateEmpty();
+    syncMarkerToSheets(el, { debounce: false });
+    openPanel(el);
+    setSheetsSyncStatus("Test: odosielam Modul „kokot“ do listu Moduly…", "");
+  }
+
+  const btnTestSheetsModul = document.getElementById("btn-test-sheets-modul");
+  if (btnTestSheetsModul) {
+    btnTestSheetsModul.addEventListener("click", runTestModulKokot);
+  }
+
   toolbox.querySelectorAll(".tool-item").forEach(bindToolboxItem);
   updateEmpty();
 })();
