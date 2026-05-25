@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tandem</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-brand-text">Tandem</span>
+        <label class="toggle" title="Zbaliť bočný panel">
+          <input type="checkbox" id="toggle-sidebar" aria-label="Zbaliť bočný panel">
+          <span class="toggle-track" aria-hidden="true">
+            <span class="toggle-thumb"></span>
+          </span>
+        </label>
+      </div>
+      <nav class="sidebar-nav">
+        <ul class="sidebar-list">
+          <li>
+            <button type="button" class="sidebar-item sidebar-item--action" id="btn-add-plan">
+              + Pridať plán
+            </button>
+          </li>
+        </ul>
+
+        <section class="toolbox-module" aria-label="Modul položiek">
+          <div class="toolbox-module__head">Položky</div>
+          <div class="toolbox-items" id="toolbox-items">
+            <button type="button" class="tool-item tool-item--kabel" data-label="Kábel" data-type="kabel">
+              Kábel
+            </button>
+            <button type="button" class="tool-item tool-item--modul" data-label="Modul" data-type="modul">
+              Modul
+            </button>
+          </div>
+          <p class="toolbox-module__hint">Ťahajte na plán (myš alebo prst)</p>
+        </section>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <h1 class="content-title">Plány</h1>
+      <label class="plan-name-field">
+        <span>Názov plánu</span>
+        <input type="text" id="plan-name" value="Plán" placeholder="napr. Pôdorys 1. NP">
+      </label>
+      <p class="content-hint">Presuňte na plán. ▸ = detail. Po úpravách kliknite na plán — uloží sa a panel sa zavrie.</p>
+      <div id="plan-stage" class="plan-stage">
+        <p class="plan-stage__empty" id="plan-stage-empty">Sem presuňte položky</p>
+        <div id="plan-markers" class="plan-markers"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="marker-panel" class="marker-panel" hidden>
+    <div class="marker-panel__head">
+      <span class="marker-panel__type" id="marker-panel-type">Položka</span>
+      <button type="button" class="marker-panel__close" id="marker-panel-close" aria-label="Zavrieť">×</button>
+    </div>
+    <div class="marker-panel__name-block">
+      <label class="marker-panel__field marker-panel__field--name">
+        <span>Názov na pláne</span>
+        <input type="text" id="marker-panel-name" placeholder="napr. Kábel WB1" autocomplete="off">
+      </label>
+      <div class="marker-panel__name-actions">
+        <button type="button" class="btn-save-name" id="btn-save-name">Uložiť</button>
+        <button type="button" class="btn-copy-from-plan" id="btn-copy-from-plan">
+          Z plánu
+        </button>
+      </div>
+      <p id="marker-name-status" class="marker-panel__status" aria-live="polite"></p>
+    </div>
+
+    <div class="marker-panel__avail">
+      <div class="avail-row">
+        <span class="avail-row__label">Dostupnosť</span>
+        <label class="avail-toggle" title="Prepnúť stav">
+          <input type="checkbox" id="marker-panel-available" aria-label="Je k dispozícii">
+          <span class="avail-track" aria-hidden="true"><span class="avail-thumb"></span></span>
+        </label>
+      </div>
+      <p id="marker-avail-status" class="avail-status avail-status--off">Nie je k dispozícii</p>
+    </div>
+
+    <div id="switches-kabel" class="marker-panel__switches">
+      <div class="switch-row switch-row--natiahnuty">
+        <div class="switch-row__text">
+          <span class="switch-row__title">Natiahnutý</span>
+          <span class="switch-row__state" id="state-natiahnuty">Nie</span>
+        </div>
+        <label class="mini-toggle">
+          <input type="checkbox" id="sw-natiahnuty" aria-label="Natiahnutý">
+          <span class="mini-track"><span class="mini-thumb"></span></span>
+        </label>
+      </div>
+      <div class="switch-row switch-row--tenant">
+        <div class="switch-row__text">
+          <span class="switch-row__title">Zapojený — strana Tenant</span>
+          <span class="switch-row__state" id="state-tenant">Nie</span>
+        </div>
+        <label class="mini-toggle">
+          <input type="checkbox" id="sw-tenant" aria-label="Zapojený tenant">
+          <span class="mini-track"><span class="mini-thumb"></span></span>
+        </label>
+      </div>
+      <div class="switch-row switch-row--abutisant">
+        <div class="switch-row__text">
+          <span class="switch-row__title">Zapojený — strana Abutisant</span>
+          <span class="switch-row__state" id="state-abutisant">Nie</span>
+        </div>
+        <label class="mini-toggle">
+          <input type="checkbox" id="sw-abutisant" aria-label="Zapojený abutisant">
+          <span class="mini-track"><span class="mini-thumb"></span></span>
+        </label>
+      </div>
+    </div>
+
+    <div id="switches-modul" class="marker-panel__switches" hidden>
+      <div class="switch-row switch-row--osadeny">
+        <div class="switch-row__text">
+          <span class="switch-row__title">Osadený</span>
+          <span class="switch-row__state" id="state-osadeny">Nie</span>
+        </div>
+        <label class="mini-toggle">
+          <input type="checkbox" id="sw-osadeny" aria-label="Osadený">
+          <span class="mini-track"><span class="mini-thumb"></span></span>
+        </label>
+      </div>
+    </div>
+
+    <label class="marker-panel__field">
+      <span>Kontextové poznámky</span>
+      <textarea id="marker-panel-notes" rows="8" placeholder="Stav, úlohy, merania, poznámky z terénu…"></textarea>
+    </label>
+    <p class="marker-panel__save-hint">Ukladá sa automaticky.</p>
+  </div>
+
+  <script src="sheets-config.js"></script>
+  <script src="sheets.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

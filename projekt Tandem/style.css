@@ -1,0 +1,801 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #f4f6f9;
+  color: #1e293b;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Ľavý panel */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sidebar-brand-text {
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+/* Malý prepínač */
+.toggle {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-track {
+  display: block;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background 0.2s;
+}
+
+.toggle-thumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.toggle input:checked + .toggle-track {
+  background: #2563eb;
+}
+
+.toggle input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(16px);
+}
+
+.toggle input:focus-visible + .toggle-track {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Zbalený panel */
+.layout.sidebar-collapsed .sidebar {
+  width: 56px;
+}
+
+.layout.sidebar-collapsed .sidebar-brand-text,
+.layout.sidebar-collapsed .sidebar-nav {
+  display: none;
+}
+
+.layout.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+  padding: 1rem 0.5rem;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0.75rem 0.5rem;
+  overflow-y: auto;
+}
+
+.sidebar-list {
+  list-style: none;
+}
+
+.sidebar-item {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sidebar-item:hover {
+  background: #f1f5f9;
+}
+
+.sidebar-item--action {
+  color: #2563eb;
+  font-weight: 600;
+  background: #eff6ff;
+  border: 1px dashed #93c5fd;
+}
+
+.sidebar-item--action:hover {
+  background: #dbeafe;
+}
+
+/* Modul položiek (pod Pridať plán) */
+.toolbox-module {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.toolbox-module__head {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.toolbox-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+}
+
+.tool-item {
+  padding: 0.4rem 0.65rem;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.tool-item:active {
+  cursor: grabbing;
+}
+
+.tool-item--kabel,
+.tool-item--modul {
+  background: #e0f2fe;
+  border: none;
+  color: #1e40af;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.12);
+}
+
+.toolbox-module__hint {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* Plán — cieľ presunu */
+.plan-stage {
+  position: relative;
+  margin-top: 1rem;
+  min-height: 420px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.plan-stage__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  pointer-events: none;
+  padding: 1rem;
+  text-align: center;
+}
+
+.plan-stage.has-markers .plan-stage__empty {
+  display: none;
+}
+
+.plan-stage.drag-over {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.plan-markers {
+  position: absolute;
+  inset: 0;
+}
+
+.plan-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.45rem;
+  border: none;
+  border-radius: 8px;
+  background: #fecaca;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 2px 10px rgba(248, 113, 113, 0.25);
+}
+
+.plan-marker:active {
+  cursor: grabbing;
+}
+
+.plan-marker__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #991b1b;
+}
+
+.plan-marker__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.plan-marker__remove:hover {
+  background: #fecaca;
+}
+
+.plan-marker--kabel .plan-marker__label,
+.plan-marker--modul .plan-marker__label {
+  cursor: pointer;
+}
+
+.plan-marker--kabel .plan-marker__label:hover,
+.plan-marker--modul .plan-marker__label:hover {
+  text-decoration: underline;
+}
+
+.plan-marker__open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.plan-marker__open--kabel,
+.plan-marker__open--modul {
+  background: #bae6fd;
+  color: #1d4ed8;
+}
+
+.plan-marker__open--kabel:hover,
+.plan-marker__open--modul:hover {
+  background: #7dd3fc;
+}
+
+.plan-marker--kabel.has-notes::after,
+.plan-marker--modul.has-notes::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid #fff;
+}
+
+.plan-marker--kabel.has-notes::after,
+.plan-marker--modul.has-notes::after {
+  background: #3b82f6;
+}
+
+.plan-marker.is-unavailable.panel-open {
+  outline: 2px solid #f87171;
+  outline-offset: 2px;
+}
+
+.plan-marker.is-available.panel-open {
+  outline: 2px solid #4ade80;
+  outline-offset: 2px;
+}
+
+/* Panel poznámok k modulu */
+.marker-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  width: min(100%, 320px);
+  height: 100vh;
+  background: #fff;
+  border-left: 1px solid #e2e8f0;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.marker-panel[hidden] {
+  display: none !important;
+}
+
+.marker-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.marker-panel__type {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.marker-panel--kabel .marker-panel__type,
+.marker-panel--modul .marker-panel__type,
+.marker-panel--kabel .marker-panel__field--name input,
+.marker-panel--modul .marker-panel__field--name input {
+  color: #1e40af;
+}
+
+.marker-panel--kabel .btn-save-name,
+.marker-panel--modul .btn-save-name {
+  background: #3b82f6;
+}
+
+.marker-panel--kabel .btn-save-name:hover,
+.marker-panel--modul .btn-save-name:hover {
+  background: #2563eb;
+}
+
+.marker-panel--kabel .btn-copy-from-plan,
+.marker-panel--modul .btn-copy-from-plan {
+  border: 1px solid #93c5fd;
+  background: #e0f2fe;
+  color: #1e40af;
+}
+
+.marker-panel__name-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.marker-panel__field--name input {
+  font-weight: 600;
+}
+
+.marker-panel__name-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-save-name,
+.btn-copy-from-plan {
+  flex: 1;
+  padding: 0.5rem 0.5rem;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save-name {
+  border: none;
+  color: #fff;
+}
+
+.btn-copy-from-plan:hover {
+  filter: brightness(0.96);
+}
+
+.marker-panel__status {
+  font-size: 0.78rem;
+  min-height: 1.1em;
+  color: #15803d;
+}
+
+.marker-panel__status.is-error {
+  color: #b91c1c;
+}
+
+/* Prepínač dostupnosti */
+.marker-panel__avail {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.avail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.avail-row__label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.avail-toggle {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.avail-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.avail-track {
+  display: block;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #fecaca;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: inset 0 0 0 1px rgba(190, 24, 93, 0.12);
+}
+
+.avail-thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.avail-toggle input:checked + .avail-track {
+  background: #86efac;
+  box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.15);
+}
+
+.avail-toggle input:checked + .avail-track .avail-thumb {
+  transform: translateX(20px);
+}
+
+.avail-status {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.avail-status--off {
+  color: #be123c;
+}
+
+.avail-status--on {
+  color: #047857;
+}
+
+/* Kábel ≠ modul — každý typ má vlastný blok prepínačov */
+.marker-panel--kabel #switches-modul {
+  display: none !important;
+}
+
+.marker-panel--modul #switches-kabel {
+  display: none !important;
+}
+
+/* Prepínače: natiahnutý / tenant / abutisant (kábel); osadený (modul) */
+.marker-panel__switches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+}
+
+.switch-row--natiahnuty {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.switch-row--tenant {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.switch-row--abutisant {
+  background: #fefce8;
+  border: 1px solid #fde68a;
+}
+
+.switch-row--osadeny {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+
+.switch-row--osadeny .switch-row__title {
+  color: #334155;
+}
+
+.switch-row--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.marker-panel__field textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-copy-from-plan:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.switch-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.switch-row__title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.switch-row--natiahnuty .switch-row__title {
+  color: #9f1239;
+}
+
+.switch-row--tenant .switch-row__title {
+  color: #1d4ed8;
+}
+
+.switch-row--abutisant .switch-row__title {
+  color: #a16207;
+}
+
+.switch-row__state {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.switch-row__state.is-yes {
+  color: #047857;
+}
+
+.switch-row__state.is-no {
+  color: #be123c;
+}
+
+.mini-toggle {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.mini-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mini-track {
+  display: block;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fecaca;
+  transition: background 0.2s;
+}
+
+.mini-thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+}
+
+.mini-toggle input:checked + .mini-track {
+  background: #86efac;
+}
+
+.mini-toggle input:checked + .mini-track .mini-thumb {
+  transform: translateX(18px);
+}
+
+/* Na pláne: po presunutí červené (nie je k dispozícii), po prepnutí zelené */
+.plan-marker.is-unavailable {
+  background: #fecaca;
+  box-shadow: 0 2px 10px rgba(248, 113, 113, 0.25);
+}
+
+.plan-marker.is-unavailable .plan-marker__label {
+  color: #991b1b;
+}
+
+.plan-marker.is-available {
+  background: #bbf7d0;
+  box-shadow: 0 2px 10px rgba(74, 222, 128, 0.28);
+}
+
+.plan-marker.is-available .plan-marker__label {
+  color: #166534;
+}
+
+.marker-panel__close {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.marker-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  font-size: 0.88rem;
+}
+
+.marker-panel__field textarea {
+  flex: 1;
+  min-height: 12rem;
+  padding: 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+}
+
+.marker-panel__save-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  padding: 0.35rem 0.55rem;
+  border: none;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #1e40af;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+  opacity: 0.95;
+}
+
+.drag-ghost--kabel,
+.drag-ghost--modul {
+  background: #e0f2fe;
+  color: #1e40af;
+}
+
+/* Hlavná časť */
+.content {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  min-width: 0;
+}
+
+.content-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.plan-name-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  max-width: 280px;
+  font-size: 0.88rem;
+}
+
+.plan-name-field input {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.content-hint {
+  margin-top: 0.5rem;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+}
