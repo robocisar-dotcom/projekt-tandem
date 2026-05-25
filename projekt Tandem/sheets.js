@@ -25,7 +25,7 @@
   function openSpreadsheet() {
     const url = getSpreadsheetEditUrl();
     if (!url) return;
-    window.open(url, "_blank", "noopener");
+    window.open(url, "tandem_google_sheets");
   }
 
   function basePayload() {
