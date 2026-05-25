@@ -231,7 +231,11 @@ if (btnOpenSheets) {
     };
   }
 
-  function collectMarkerRecord(el) {
+  function sheetsNameKey(el) {
+    return (el.dataset.sheetsNameKey || el.dataset.label || "").trim();
+  }
+
+  function collectMarkerRecord(el, previousLabelOverride) {
     if (!el || !isDetailMarker(el)) return null;
     const type = el.dataset.type;
     const pos = markerPosition(el);
@@ -250,11 +254,18 @@ if (btnOpenSheets) {
       });
     }
 
+    const sheetKey = sheetsNameKey(el);
+    let previousLabel = previousLabelOverride || "";
+    if (!previousLabel && sheetKey && sheetKey !== label) {
+      previousLabel = sheetKey;
+    }
+
     const record = {
       type,
       markerId: el.dataset.markerId || "",
       planName: getPlanName(),
       label,
+      previousLabel,
       available,
       notes,
       posX: pos.posX,
@@ -280,18 +291,19 @@ if (btnOpenSheets) {
     if (kind === "error") sheetsSyncStatus.classList.add("is-error");
   }
 
-  function syncMarkerToSheets(el, opts) {
+  function syncMarkerToSheets(el, opts, previousLabelOverride) {
     if (!window.TandemSheets?.isEnabled?.()) return;
-    const record = collectMarkerRecord(el);
-    if (!record || !record.markerId) return;
+    const record = collectMarkerRecord(el, previousLabelOverride);
+    if (!record || !record.label) return;
     setSheetsSyncStatus("Ukladám do tabuľky…", "");
     window.TandemSheets.saveMarker(record, opts).then((r) => {
       if (!r || r.skipped) return;
       if (r.ok) {
+        el.dataset.sheetsNameKey = record.label;
         const list = record.type === "modul" ? "Moduly" : "Kable";
         const msg = r.opaque
           ? "Odoslané do Google Sheets (list " + list + ") — overte v tabuľke."
-          : "Uložené v Google Sheets (list " + list + ").";
+          : "Uložené v Google Sheets (list " + list + "): " + record.label + ".";
         setSheetsSyncStatus(msg, "ok");
         return;
       }
@@ -301,9 +313,12 @@ if (btnOpenSheets) {
 
   function savePanelState() {
     if (!openMarker) return;
+    let previousLabel = "";
     if (panelName) {
-      const text = panelName.value.trim();
-      setMarkerName(openMarker, text || defaultLabel(openMarker.dataset.type));
+      const text = panelName.value.trim() || defaultLabel(openMarker.dataset.type);
+      const oldKey = sheetsNameKey(openMarker);
+      if (oldKey && oldKey !== text) previousLabel = oldKey;
+      setMarkerName(openMarker, text);
     }
     if (panelNotes) saveNotes(openMarker, panelNotes.value);
     if (panelAvailable) syncAvailability(openMarker, panelAvailable.checked);
@@ -312,7 +327,7 @@ if (btnOpenSheets) {
       if (inp) setSwitch(openMarker, key, inp.checked);
     });
     clearUnusedMarkerData(openMarker);
-    syncMarkerToSheets(openMarker, { debounce: false });
+    syncMarkerToSheets(openMarker, { debounce: false }, previousLabel);
   }
 
   function savePanelAndClose() {
@@ -331,6 +346,9 @@ if (btnOpenSheets) {
   function setMarkerName(el, name) {
     const text = (name || "").trim() || defaultLabel(el.dataset.type);
     el.dataset.label = text;
+    if (!el.dataset.sheetsNameKey) {
+      el.dataset.sheetsNameKey = text;
+    }
     const labelEl = el.querySelector(".plan-marker__label");
     if (labelEl) labelEl.textContent = text;
     syncNotesIndicator(el);
@@ -457,6 +475,7 @@ if (btnOpenSheets) {
     el.className = "plan-marker plan-marker--" + type;
     el.dataset.markerId = String(markerId);
     el.dataset.label = label;
+    el.dataset.sheetsNameKey = label;
     el.dataset.type = type;
     el.dataset.notes = "";
     el.dataset.available = "0";

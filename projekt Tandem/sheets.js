@@ -127,11 +127,12 @@
    */
   function saveMarker(record, opts) {
     if (!isEnabled()) return Promise.resolve({ skipped: true });
-    if (!record || !record.markerId) return Promise.resolve({ skipped: true });
+    const label = (record.label || "").trim();
+    if (!label) return Promise.resolve({ skipped: true });
 
     const payload = Object.assign(basePayload(), record);
     const useDebounce = opts && opts.debounce !== false;
-    const id = String(record.markerId);
+    const id = String(record.markerId || label);
 
     if (!useDebounce) {
       return post_(payload);

@@ -1,7 +1,7 @@
 /**
  * Tandem → Google Sheets
- * Dve karty: „Kable“ a „Moduly“
- * action: setup | upsert
+ * Karty: Kable, Moduly
+ * Riadok sa hľadá podľa stĺpca „Názov“ (nie ID).
  */
 
 var SPREADSHEET_ID = "1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk";
@@ -9,8 +9,10 @@ var SPREADSHEET_ID = "1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk";
 var SHEET_KABEL = "Kable";
 var SHEET_MODUL = "Moduly";
 
+/** Stĺpec „Názov“ položky na pláne (1-based) */
+var COL_NAZOV = 2;
+
 var HEADERS_KABEL = [
-  "ID",
   "Názov plánu",
   "Názov",
   "Dostupnosť",
@@ -24,7 +26,6 @@ var HEADERS_KABEL = [
 ];
 
 var HEADERS_MODUL = [
-  "ID",
   "Názov plánu",
   "Názov",
   "Dostupnosť",
@@ -44,7 +45,7 @@ function doGet(e) {
   return handleRequest_(p);
 }
 
-/** Spustite raz v editore Apps Script — vytvorí karty Kable a Moduly */
+/** Spustite raz v editore — vytvorí karty Kable a Moduly */
 function setupTandemSheets() {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   setupAllSheets_(ss);
@@ -78,15 +79,24 @@ function handleRequest_(data) {
     var sheetName = isModul ? SHEET_MODUL : SHEET_KABEL;
     var headers = isModul ? HEADERS_MODUL : HEADERS_KABEL;
 
-    var sheet = getOrCreateSheet_(ss, sheetName, headers);
-    var row = buildRow_(data, isModul);
-    var markerId = String(data.markerId || "").trim();
-
-    if (!markerId) {
-      return jsonResponse_({ ok: false, error: "Chýba markerId" });
+    var label = String(data.label || data.name || "").trim();
+    if (!label) {
+      label = isModul ? "Modul" : "Kábel";
     }
 
-    var rowIndex = findRowByMarkerId_(sheet, markerId);
+    var previousLabel = String(data.previousLabel || "").trim();
+
+    var sheet = getOrCreateSheet_(ss, sheetName, headers);
+    var row = buildRow_(data, isModul, label);
+
+    var rowIndex = -1;
+    if (previousLabel && previousLabel !== label) {
+      rowIndex = findRowByName_(sheet, previousLabel);
+    }
+    if (rowIndex < 0) {
+      rowIndex = findRowByName_(sheet, label);
+    }
+
     if (rowIndex > 0) {
       sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
     } else {
@@ -96,7 +106,8 @@ function handleRequest_(data) {
     return jsonResponse_({
       ok: true,
       sheet: sheetName,
-      markerId: markerId,
+      label: label,
+      previousLabel: previousLabel || null,
       updated: rowIndex > 0,
     });
   } catch (err) {
@@ -109,13 +120,9 @@ function setupAllSheets_(ss) {
   getOrCreateSheet_(ss, SHEET_MODUL, HEADERS_MODUL);
 }
 
-function buildRow_(data, isModul) {
+function buildRow_(data, isModul, label) {
   var now = new Date();
-  var common = [
-    String(data.markerId || ""),
-    String(data.planName || ""),
-    String(data.label || data.name || ""),
-    yesNo_(data.available),
+  var tail = [
     String(data.notes || ""),
     numOrEmpty_(data.posX),
     numOrEmpty_(data.posY),
@@ -124,31 +131,21 @@ function buildRow_(data, isModul) {
 
   if (isModul) {
     return [
-      common[0],
-      common[1],
-      common[2],
-      common[3],
+      String(data.planName || ""),
+      label,
+      yesNo_(data.available),
       yesNo_(data.osadeny),
-      common[4],
-      common[5],
-      common[6],
-      common[7],
-    ];
+    ].concat(tail);
   }
 
   return [
-    common[0],
-    common[1],
-    common[2],
-    common[3],
+    String(data.planName || ""),
+    label,
+    yesNo_(data.available),
     yesNo_(data.natiahnuty),
     yesNo_(data.tenant),
     yesNo_(data.abutisant),
-    common[4],
-    common[5],
-    common[6],
-    common[7],
-  ];
+  ].concat(tail);
 }
 
 function yesNo_(val) {
@@ -164,12 +161,14 @@ function numOrEmpty_(val) {
   return isNaN(n) ? "" : n;
 }
 
-function findRowByMarkerId_(sheet, markerId) {
+function findRowByName_(sheet, name) {
+  var search = String(name || "").trim();
+  if (!search) return -1;
   var last = sheet.getLastRow();
   if (last < 2) return -1;
-  var data = sheet.getRange(2, 1, last - 1, 1).getValues();
+  var data = sheet.getRange(2, COL_NAZOV, last, COL_NAZOV).getValues();
   for (var i = 0; i < data.length; i++) {
-    if (String(data[i][0]) === markerId) {
+    if (String(data[i][0]) === search) {
       return i + 2;
     }
   }
