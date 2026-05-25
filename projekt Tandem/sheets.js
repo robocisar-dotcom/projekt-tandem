@@ -61,16 +61,29 @@
     }
   }
 
-  async function postViaGet_(payload) {
+  function buildGetUrl_(payload) {
     const base = config().webAppUrl.trim();
     const url = new URL(base);
     Object.keys(payload).forEach((key) => {
       const val = payload[key];
       if (val !== undefined && val !== null) url.searchParams.set(key, String(val));
     });
-    const res = await fetch(url.toString(), { method: "GET", redirect: "follow" });
+    return url.toString();
+  }
+
+  async function postViaGet_(payload) {
+    const res = await fetch(buildGetUrl_(payload), { method: "GET", redirect: "follow" });
     const text = await res.text();
     return parseAppsScriptResponse(res, text);
+  }
+
+  async function postViaNoCorsGet_(payload) {
+    await fetch(buildGetUrl_(payload), {
+      method: "GET",
+      mode: "no-cors",
+      cache: "no-store",
+    });
+    return { ok: true, opaque: true };
   }
 
   async function post_(payload) {
@@ -93,7 +106,12 @@
       try {
         return await postViaGet_(payload);
       } catch (err2) {
-        return { ok: false, error: String(err2.message || err2) };
+        console.warn("Tandem Sheets GET:", err2);
+        try {
+          return await postViaNoCorsGet_(payload);
+        } catch (err3) {
+          return { ok: false, error: String(err3.message || err3) };
+        }
       }
     }
   }
