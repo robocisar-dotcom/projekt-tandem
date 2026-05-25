@@ -90,6 +90,7 @@ if (btnOpenSheets) {
   let drag = null;
   let markerId = 0;
   let openMarker = null;
+  let planNameSyncTimer = null;
   const DRAG_THRESHOLD = 8;
 
   function updateEmpty() {
@@ -299,6 +300,22 @@ if (btnOpenSheets) {
     });
   }
 
+  function syncAllMarkersToSheets(opts) {
+    if (!window.TandemSheets?.isEnabled?.()) return;
+    const markers = Array.from(planMarkers.querySelectorAll(".plan-marker")).filter(isDetailMarker);
+    if (!markers.length) return;
+    setSheetsSyncStatus("Ukladam novy nazov planu do tabulky...", "");
+    markers.forEach((marker) => syncMarkerToSheets(marker, opts));
+  }
+
+  function schedulePlanNameSync() {
+    if (planNameSyncTimer) clearTimeout(planNameSyncTimer);
+    planNameSyncTimer = setTimeout(() => {
+      planNameSyncTimer = null;
+      syncAllMarkersToSheets({ debounce: false });
+    }, 700);
+  }
+
   function savePanelState() {
     if (!openMarker) return;
     if (panelName) {
@@ -326,6 +343,11 @@ if (btnOpenSheets) {
 
   function getPlanName() {
     return (planNameInput?.value || "").trim() || "Plán";
+  }
+
+  if (planNameInput) {
+    planNameInput.addEventListener("input", schedulePlanNameSync);
+    planNameInput.addEventListener("change", () => syncAllMarkersToSheets({ debounce: false }));
   }
 
   function setMarkerName(el, name) {
