@@ -3,5 +3,5 @@
  */
 window.TANDEM_SHEETS = {
   spreadsheetId: "1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk",
-  webAppUrl: "https://script.google.com/macros/s/VASE-ID/exec",
+  webAppUrl: "https://script.google.com/macros/s/VASE-DEPLOYMENT-ID/exec",
 };

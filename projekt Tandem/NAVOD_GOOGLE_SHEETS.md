@@ -50,7 +50,10 @@ window.TANDEM_SHEETS = {
 };
 ```
 
-3. Obnovte stránku (**Ctrl+F5**) alebo znova nasaďte na Netlify (ZIP musí obsahovať `sheets-config.js`, `sheets.js` a `index.html`).
+3. Pushnite na GitHub (`main`) — Netlify nasadí: https://aquamarine-sunburst-ed5bc5.netlify.app  
+   Alebo lokálne **Ctrl+F5**.
+
+**Git ≠ Apps Script:** zmeny v `google-apps-script/Code.gs` na GitHube sa do Google **neskopírujú** samy — kód vložte ručne v Apps Script a znova nasaďte webovú aplikáciu.
 
 ---
 
@@ -62,8 +65,3 @@ window.TANDEM_SHEETS = {
 
 Ak URL v `sheets-config.js` chýba, aplikácia funguje ďalej, len bez zápisu do Sheets.
 
----
-
-## Ďalší krok (neskôr)
-
-Úprava názvu v paneli, dostupnosť, prepínače — doplníme do toho istého skriptu, keď budete chcieť.

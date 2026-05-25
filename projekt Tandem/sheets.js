@@ -13,6 +13,18 @@
     return url.length > 20 && url.indexOf("script.google.com") !== -1;
   }
 
+  function getSpreadsheetEditUrl() {
+    const id = (config().spreadsheetId || "").trim();
+    if (!id) return "";
+    return "https://docs.google.com/spreadsheets/d/" + id + "/edit";
+  }
+
+  function openSpreadsheet() {
+    const url = getSpreadsheetEditUrl();
+    if (!url) return;
+    window.open(url, "_blank", "noopener");
+  }
+
   function basePayload() {
     const payload = { action: "upsert" };
     const sheetId = (config().spreadsheetId || "").trim();
@@ -73,5 +85,11 @@
     });
   }
 
-  global.TandemSheets = { isEnabled, saveMarker, appendMarker };
+  global.TandemSheets = {
+    isEnabled,
+    saveMarker,
+    appendMarker,
+    getSpreadsheetEditUrl,
+    openSpreadsheet,
+  };
 })(window);

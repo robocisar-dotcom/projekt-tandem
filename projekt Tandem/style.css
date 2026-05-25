@@ -113,6 +113,10 @@ body {
   list-style: none;
 }
 
+.sidebar-list--sheets {
+  margin-top: 1rem;
+}
+
 .sidebar-item {
   display: block;
   width: 100%;

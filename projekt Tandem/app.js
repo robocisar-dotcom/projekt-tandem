@@ -1,9 +1,16 @@
 const toggle = document.getElementById("toggle-sidebar");
 const layout = document.querySelector(".layout");
+const btnOpenSheets = document.getElementById("btn-open-sheets");
 
 if (toggle && layout) {
   toggle.addEventListener("change", () => {
     layout.classList.toggle("sidebar-collapsed", toggle.checked);
+  });
+}
+
+if (btnOpenSheets) {
+  btnOpenSheets.addEventListener("click", () => {
+    window.TandemSheets?.openSpreadsheet?.();
   });
 }
 
