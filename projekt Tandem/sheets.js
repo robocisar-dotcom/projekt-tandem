@@ -6,6 +6,7 @@
  */
 (function (global) {
   const debounceTimers = new Map();
+  let spreadsheetWindow = null;
 
   function config() {
     return global.TANDEM_SHEETS || {};
@@ -25,7 +26,12 @@
   function openSpreadsheet() {
     const url = getSpreadsheetEditUrl();
     if (!url) return;
-    window.open(url, "tandem_google_sheets");
+    if (spreadsheetWindow && !spreadsheetWindow.closed) {
+      spreadsheetWindow.focus();
+      return;
+    }
+    spreadsheetWindow = window.open(url, "tandem_google_sheets");
+    if (spreadsheetWindow) spreadsheetWindow.focus();
   }
 
   function basePayload() {
