@@ -281,12 +281,13 @@ if (btnOpenSheets) {
     if (kind === "error") sheetsSyncStatus.classList.add("is-error");
   }
 
-  function syncMarkerToSheets(el, opts) {
-    if (!window.TandemSheets?.isEnabled?.()) return;
+  function syncMarkerToSheets(el, opts, quiet) {
+    if (!window.TandemSheets?.isEnabled?.()) return Promise.resolve();
     const record = collectMarkerRecord(el);
-    if (!record || !record.markerId) return;
-    setSheetsSyncStatus("Ukladám do tabuľky…", "");
-    window.TandemSheets.saveMarker(record, opts).then((r) => {
+    if (!record || !record.markerId) return Promise.resolve();
+    if (!quiet) setSheetsSyncStatus("Ukladám do tabuľky…", "");
+    return window.TandemSheets.saveMarker(record, opts).then((r) => {
+      if (quiet) return;
       if (!r || r.skipped) return;
       if (r.ok) {
         const list = record.type === "modul" ? "Moduly" : "Kable";
@@ -300,19 +301,42 @@ if (btnOpenSheets) {
     });
   }
 
-  function syncAllMarkersToSheets(opts) {
+  function syncMarkersSequential(markers, opts) {
+    let chain = Promise.resolve();
+    markers.forEach((marker) => {
+      chain = chain.then(() => syncMarkerToSheets(marker, opts, true));
+    });
+    return chain;
+  }
+
+  function syncPlanNameToSheets() {
     if (!window.TandemSheets?.isEnabled?.()) return;
-    const markers = Array.from(planMarkers.querySelectorAll(".plan-marker")).filter(isDetailMarker);
-    if (!markers.length) return;
-    setSheetsSyncStatus("Ukladam novy nazov planu do tabulky...", "");
-    markers.forEach((marker) => syncMarkerToSheets(marker, opts));
+    const name = getPlanName();
+    setSheetsSyncStatus("Ukladám názov plánu do tabuľky…", "");
+    window.TandemSheets.updatePlanName(name).then((r) => {
+      if (!r || r.skipped) return;
+      if (!r.ok) {
+        setSheetsSyncStatus(r.error || "Zápis názvu plánu zlyhal.", "error");
+        return;
+      }
+      const markers = Array.from(planMarkers.querySelectorAll(".plan-marker")).filter(isDetailMarker);
+      if (!markers.length) {
+        const hint = r.opaque ? " — overte v tabuľke" : "";
+        setSheetsSyncStatus("Názov plánu uložený: " + name + hint + ".", "ok");
+        return;
+      }
+      syncMarkersSequential(markers, { debounce: false }).then(() => {
+        const hint = r.opaque ? " — overte v tabuľke" : "";
+        setSheetsSyncStatus("Názov plánu uložený: " + name + hint + ".", "ok");
+      });
+    });
   }
 
   function schedulePlanNameSync() {
     if (planNameSyncTimer) clearTimeout(planNameSyncTimer);
     planNameSyncTimer = setTimeout(() => {
       planNameSyncTimer = null;
-      syncAllMarkersToSheets({ debounce: false });
+      syncPlanNameToSheets();
     }, 700);
   }
 
@@ -347,7 +371,15 @@ if (btnOpenSheets) {
 
   if (planNameInput) {
     planNameInput.addEventListener("input", schedulePlanNameSync);
-    planNameInput.addEventListener("change", () => syncAllMarkersToSheets({ debounce: false }));
+    planNameInput.addEventListener("change", syncPlanNameToSheets);
+    planNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (planNameSyncTimer) clearTimeout(planNameSyncTimer);
+        planNameSyncTimer = null;
+        syncPlanNameToSheets();
+      }
+    });
   }
 
   function setMarkerName(el, name) {

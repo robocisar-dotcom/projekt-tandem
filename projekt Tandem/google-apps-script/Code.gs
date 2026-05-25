@@ -89,6 +89,17 @@ function handleRequest_(data) {
       });
     }
 
+    if (action === "updateplanname") {
+      var planName = String(data.planName || "").trim() || "Plán";
+      var updated = updatePlanNameOnAllSheets_(ss, planName);
+      return jsonResponse_({
+        ok: true,
+        planName: planName,
+        sheets: [SHEET_KABEL, SHEET_MODUL],
+        rowsUpdated: updated,
+      });
+    }
+
     var markerId = String(data.markerId || "").trim();
     if (!markerId) {
       return jsonResponse_({ ok: false, error: "Chýba markerId" });
@@ -149,6 +160,25 @@ function clearSheetRows_(sheet) {
   if (last > 1) {
     sheet.deleteRows(2, last - 1);
   }
+}
+
+/** Stĺpec 1 = Názov plánu — aktualizuje všetky riadky v oboch listoch */
+function updatePlanNameOnAllSheets_(ss, planName) {
+  var n1 = updatePlanNameOnSheet_(getOrCreateSheet_(ss, SHEET_KABEL, HEADERS_KABEL), planName);
+  var n2 = updatePlanNameOnSheet_(getOrCreateSheet_(ss, SHEET_MODUL, HEADERS_MODUL), planName);
+  return n1 + n2;
+}
+
+function updatePlanNameOnSheet_(sheet, planName) {
+  var last = sheet.getLastRow();
+  if (last < 2) return 0;
+  var numRows = last - 1;
+  var values = [];
+  for (var i = 0; i < numRows; i++) {
+    values.push([planName]);
+  }
+  sheet.getRange(2, 1, numRows, 1).setValues(values);
+  return numRows;
 }
 
 function buildRow_(data, isModul) {

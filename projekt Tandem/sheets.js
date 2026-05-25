@@ -214,6 +214,17 @@
     );
   }
 
+  /** Aktualizuje stĺpec „Názov plánu“ vo všetkých riadkoch (Kable + Moduly) */
+  function updatePlanName(planName) {
+    if (!isEnabled()) return Promise.resolve({ skipped: true });
+    return post_(
+      Object.assign(basePayload(), {
+        action: "updatePlanName",
+        planName: (planName || "").trim() || "Plán",
+      })
+    );
+  }
+
   global.TandemSheets = {
     isEnabled,
     saveMarker,
@@ -221,6 +232,7 @@
     appendMarker,
     setupSheets,
     clearSheets,
+    updatePlanName,
     getSpreadsheetEditUrl,
     openSpreadsheet,
   };
