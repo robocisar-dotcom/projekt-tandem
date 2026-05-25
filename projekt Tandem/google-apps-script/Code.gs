@@ -163,7 +163,7 @@ function findRowByMarkerId_(sheet, markerId, idColIndex) {
   var last = sheet.getLastRow();
   if (last < 2) return -1;
   var col = idColIndex || sheet.getLastColumn();
-  var data = sheet.getRange(2, col, last, col).getValues();
+  var data = sheet.getRange(2, col, last - 1, 1).getValues();
   for (var i = 0; i < data.length; i++) {
     if (String(data[i][0]) === search) {
       return i + 2;

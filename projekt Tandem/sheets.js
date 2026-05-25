@@ -2,7 +2,7 @@
  * Google Sheets — upsert značky (všetky polia z panela).
  *
  * DÔLEŽITÉ (Netlify / CORS): postViaNoCorsGet_ nesmie byť odstránené.
- * Pri blokovaní POST/GET z prehliadača odošle GET v režime no-cors (opaque).
+ * Pri blokovaní POST/GET z prehliadača odošle GET cez skrytý iframe (opaque).
  */
 (function (global) {
   const debounceTimers = new Map();
@@ -87,12 +87,31 @@
   }
 
   async function postViaNoCorsGet_(payload) {
-    await fetch(buildGetUrl_(payload), {
-      method: "GET",
-      mode: "no-cors",
-      cache: "no-store",
+    return new Promise((resolve) => {
+      const iframe = document.createElement("iframe");
+      const url = new URL(buildGetUrl_(payload));
+      url.searchParams.set("_t", String(Date.now()));
+
+      iframe.hidden = true;
+      iframe.width = "0";
+      iframe.height = "0";
+      iframe.style.position = "absolute";
+      iframe.style.left = "-9999px";
+      iframe.src = url.toString();
+
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        setTimeout(() => iframe.remove(), 1000);
+        resolve({ ok: true, opaque: true });
+      };
+
+      iframe.addEventListener("load", finish, { once: true });
+      iframe.addEventListener("error", finish, { once: true });
+      document.body.appendChild(iframe);
+      setTimeout(finish, 2500);
     });
-    return { ok: true, opaque: true };
   }
 
   async function post_(payload) {
