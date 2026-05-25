@@ -270,11 +270,29 @@ if (btnOpenSheets) {
     return record;
   }
 
+  const sheetsSyncStatus = document.getElementById("sheets-sync-status");
+
+  function setSheetsSyncStatus(msg, kind) {
+    if (!sheetsSyncStatus) return;
+    sheetsSyncStatus.textContent = msg || "";
+    sheetsSyncStatus.classList.remove("is-ok", "is-error");
+    if (kind === "ok") sheetsSyncStatus.classList.add("is-ok");
+    if (kind === "error") sheetsSyncStatus.classList.add("is-error");
+  }
+
   function syncMarkerToSheets(el, opts) {
     if (!window.TandemSheets?.isEnabled?.()) return;
     const record = collectMarkerRecord(el);
     if (!record || !record.markerId) return;
-    window.TandemSheets.saveMarker(record, opts);
+    setSheetsSyncStatus("Ukladám do tabuľky…", "");
+    window.TandemSheets.saveMarker(record, opts).then((r) => {
+      if (!r || r.skipped) return;
+      if (r.ok) {
+        setSheetsSyncStatus("Uložené v Google Sheets (list " + (record.type === "modul" ? "Moduly" : "Kable") + ").", "ok");
+        return;
+      }
+      setSheetsSyncStatus(r.error || "Zápis do tabuľky zlyhal.", "error");
+    });
   }
 
   function savePanelState() {

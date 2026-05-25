@@ -32,19 +32,69 @@
     return payload;
   }
 
+  function parseAppsScriptResponse(res, text) {
+    if (res.url && res.url.indexOf("accounts.google.com") !== -1) {
+      return {
+        ok: false,
+        error:
+          "Apps Script nie je verejný — pri nasadení zvoľte prístup „Ktokoľvek“ (Anyone).",
+      };
+    }
+    try {
+      const data = JSON.parse(text);
+      if (data.ok === false) {
+        return { ok: false, error: data.error || "Chyba Apps Script" };
+      }
+      return { ok: true, data };
+    } catch {
+      if (text.indexOf("signin") !== -1 || text.indexOf("AccountChooser") !== -1) {
+        return {
+          ok: false,
+          error:
+            "Apps Script vyžaduje prihlásenie — nasadenie musí mať prístup „Ktokoľvek“.",
+        };
+      }
+      return {
+        ok: false,
+        error: "Neplatná odpoveď servera (nové nasadenie webovej aplikácie?).",
+      };
+    }
+  }
+
+  async function postViaGet_(payload) {
+    const base = config().webAppUrl.trim();
+    const url = new URL(base);
+    Object.keys(payload).forEach((key) => {
+      const val = payload[key];
+      if (val !== undefined && val !== null) url.searchParams.set(key, String(val));
+    });
+    const res = await fetch(url.toString(), { method: "GET", redirect: "follow" });
+    const text = await res.text();
+    return parseAppsScriptResponse(res, text);
+  }
+
   async function post_(payload) {
     const url = config().webAppUrl.trim();
     try {
-      await fetch(url, {
+      const res = await fetch(url, {
         method: "POST",
-        mode: "no-cors",
+        redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
-      return { ok: true };
+      const text = await res.text();
+      const parsed = parseAppsScriptResponse(res, text);
+      if (!parsed.ok && parsed.error && parsed.error.indexOf("Apps Script") !== -1) {
+        return postViaGet_(payload);
+      }
+      return parsed;
     } catch (err) {
-      console.warn("Tandem Sheets:", err);
-      return { ok: false, error: err };
+      console.warn("Tandem Sheets POST:", err);
+      try {
+        return await postViaGet_(payload);
+      } catch (err2) {
+        return { ok: false, error: String(err2.message || err2) };
+      }
     }
   }
 

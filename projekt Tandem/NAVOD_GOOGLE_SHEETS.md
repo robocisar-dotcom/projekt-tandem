@@ -34,8 +34,16 @@ Listy **Kable** a **Moduly** sa vytvoria automaticky pri prvom zápise (teraz je
 4. **Nasadiť → Nové nasadenie** (pri každej zmene kódu znova nasaďte):
    - Typ: **Webová aplikácia**
    - Spustiť ako: **Ja**
-   - Kto má prístup: **Ktokoľvek** (alebo „Ktokoľvek s odkazom“)
-5. Skopírujte **URL webovej aplikácie** (končí na `/exec`).
+   - **Kto má prístup: Ktokoľvek** (angl. *Anyone*) — bez toho Tandem z webu do tabuľky nezapíše
+5. Skopírujte **URL webovej aplikácie** (končí na `/exec`, nie `/dev`).
+
+### Overenie nasadenia
+
+V prehliadači otvorte (nahraďte URL):
+
+`https://script.google.com/macros/s/VASE-ID/exec?type=modul&markerId=test&name=Test`
+
+Ak vidíte JSON `{"ok":true,...}`, je to v poriadku. Ak stránka na prihlásenie do Google, nasadenie nie je verejné — zopakujte krok 4 s **Ktokoľvek**.
 
 ---
 
