@@ -690,6 +690,26 @@ if (btnOpenSheets) {
     btnTestSheetsModul.addEventListener("click", runTestModulKokot);
   }
 
+  const btnClearSheets = document.getElementById("btn-clear-sheets");
+  if (btnClearSheets) {
+    btnClearSheets.addEventListener("click", () => {
+      if (!window.TandemSheets?.isEnabled?.()) return;
+      const ok = window.confirm(
+        "Vymazať všetky riadky v listoch Kable a Moduly?\n(Hlavičky ostávajú. Plán v aplikácii sa nemení.)"
+      );
+      if (!ok) return;
+      setSheetsSyncStatus("Čistím tabuľku…", "");
+      window.TandemSheets.clearSheets().then((r) => {
+        if (!r || r.skipped) return;
+        if (r.ok) {
+          setSheetsSyncStatus("Tabuľka vyčistená (Kable + Moduly).", "ok");
+          return;
+        }
+        setSheetsSyncStatus(r.error || "Čistenie zlyhalo.", "error");
+      });
+    });
+  }
+
   toolbox.querySelectorAll(".tool-item").forEach(bindToolboxItem);
   updateEmpty();
 })();

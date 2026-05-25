@@ -132,6 +132,17 @@ body {
   background: #ede9fe;
 }
 
+.sidebar-item--clear {
+  color: #b91c1c;
+  font-weight: 600;
+  background: #fef2f2;
+  border: 1px dashed #fecaca;
+}
+
+.sidebar-item--clear:hover {
+  background: #fee2e2;
+}
+
 .sheets-sync-status {
   margin-top: 0.5rem;
   padding: 0 0.85rem;

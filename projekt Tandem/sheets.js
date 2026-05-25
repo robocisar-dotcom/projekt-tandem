@@ -204,12 +204,23 @@
     );
   }
 
+  /** Vymaže všetky riadky v listoch Kable a Moduly (hlavičky ostávajú) */
+  function clearSheets() {
+    if (!isEnabled()) return Promise.resolve({ skipped: true });
+    return post_(
+      Object.assign(basePayload(), {
+        action: "clear",
+      })
+    );
+  }
+
   global.TandemSheets = {
     isEnabled,
     saveMarker,
     deleteMarker,
     appendMarker,
     setupSheets,
+    clearSheets,
     getSpreadsheetEditUrl,
     openSpreadsheet,
   };
