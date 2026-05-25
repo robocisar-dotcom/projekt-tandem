@@ -21,7 +21,14 @@ Ukladajú sa **všetky údaje z panela** (pri každej zmene sa riadok aktualizuj
 
 **[projekt Tandem](https://docs.google.com/spreadsheets/d/1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk/edit)** — ID je už v `sheets-config.js`.
 
-Listy **Kable** a **Moduly** sa vytvoria automaticky pri prvom zápise (teraz je len prázdny „Hárok1“).
+V tabuľke musia byť **dve karty** (listy):
+
+| Karta v Sheets | Čo sa tam ukladá |
+|----------------|------------------|
+| **Kable**      | položky typu Kábel |
+| **Moduly**     | položky typu Modul |
+
+Tandem ich vytvorí sám pri prvom otvorení (ak má Apps Script prístup). Starý prázdny list „Hárok1“ môžete zmazať alebo nechať.
 
 ---
 

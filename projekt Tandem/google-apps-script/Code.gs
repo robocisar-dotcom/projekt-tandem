@@ -1,6 +1,7 @@
 /**
- * Tandem → Google Sheets (upsert podľa ID značky)
- * Listy: Kable, Moduly
+ * Tandem → Google Sheets
+ * Dve karty: „Kable“ a „Moduly“
+ * action: setup | upsert
  */
 
 var SPREADSHEET_ID = "1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk";
@@ -43,6 +44,12 @@ function doGet(e) {
   return handleRequest_(p);
 }
 
+/** Spustite raz v editore Apps Script — vytvorí karty Kable a Moduly */
+function setupTandemSheets() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  setupAllSheets_(ss);
+}
+
 function parseBody_(e) {
   if (!e || !e.postData || !e.postData.contents) return {};
   try {
@@ -54,12 +61,23 @@ function parseBody_(e) {
 
 function handleRequest_(data) {
   try {
+    var action = String(data.action || "upsert").toLowerCase();
+    var ss = getSpreadsheet_(data);
+
+    if (action === "setup") {
+      setupAllSheets_(ss);
+      return jsonResponse_({
+        ok: true,
+        sheets: [SHEET_KABEL, SHEET_MODUL],
+        message: "Karty Kable a Moduly sú pripravené.",
+      });
+    }
+
     var type = String(data.type || "").toLowerCase();
     var isModul = type === "modul";
     var sheetName = isModul ? SHEET_MODUL : SHEET_KABEL;
     var headers = isModul ? HEADERS_MODUL : HEADERS_KABEL;
 
-    var ss = getSpreadsheet_(data);
     var sheet = getOrCreateSheet_(ss, sheetName, headers);
     var row = buildRow_(data, isModul);
     var markerId = String(data.markerId || "").trim();
@@ -84,6 +102,11 @@ function handleRequest_(data) {
   } catch (err) {
     return jsonResponse_({ ok: false, error: String(err) });
   }
+}
+
+function setupAllSheets_(ss) {
+  getOrCreateSheet_(ss, SHEET_KABEL, HEADERS_KABEL);
+  getOrCreateSheet_(ss, SHEET_MODUL, HEADERS_MODUL);
 }
 
 function buildRow_(data, isModul) {
@@ -144,9 +167,9 @@ function numOrEmpty_(val) {
 function findRowByMarkerId_(sheet, markerId) {
   var last = sheet.getLastRow();
   if (last < 2) return -1;
-  var ids = sheet.getRange(2, 1, last - 1, 1).getValues();
-  for (var i = 0; i < ids.length; i++) {
-    if (String(ids[i][0]) === markerId) {
+  var data = sheet.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]) === markerId) {
       return i + 2;
     }
   }
@@ -155,10 +178,10 @@ function findRowByMarkerId_(sheet, markerId) {
 
 function getSpreadsheet_(data) {
   var id = String((data && data.spreadsheetId) || SPREADSHEET_ID || "").trim();
-  if (id) {
-    return SpreadsheetApp.openById(id);
+  if (!id) {
+    throw new Error("Chýba spreadsheetId");
   }
-  return SpreadsheetApp.getActiveSpreadsheet();
+  return SpreadsheetApp.openById(id);
 }
 
 function getOrCreateSheet_(ss, name, headers) {
@@ -172,17 +195,19 @@ function getOrCreateSheet_(ss, name, headers) {
 
 function ensureHeaders_(sheet, headers) {
   var width = headers.length;
-  var current = sheet.getRange(1, 1, 1, width).getValues()[0];
-  var ok = true;
+  var range = sheet.getRange(1, 1, 1, width);
+  var current = range.getValues()[0];
+  var needsUpdate = false;
   for (var i = 0; i < headers.length; i++) {
     if (String(current[i] || "") !== headers[i]) {
-      ok = false;
+      needsUpdate = true;
       break;
     }
   }
-  if (!ok && sheet.getLastRow() <= 1) {
-    sheet.getRange(1, 1, 1, width).setValues([headers]);
-    sheet.getRange(1, 1, 1, width).setFontWeight("bold");
+  if (needsUpdate) {
+    range.setValues([headers]);
+    range.setFontWeight("bold");
+    sheet.setFrozenRows(1);
   }
 }
 

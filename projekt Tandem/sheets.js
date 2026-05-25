@@ -135,11 +135,29 @@
     });
   }
 
+  /** Vytvorí / pripraví karty Kable a Moduly v tabuľke */
+  function setupSheets() {
+    if (!isEnabled()) return Promise.resolve({ skipped: true });
+    return post_(
+      Object.assign(basePayload(), {
+        action: "setup",
+      })
+    );
+  }
+
   global.TandemSheets = {
     isEnabled,
     saveMarker,
     appendMarker,
+    setupSheets,
     getSpreadsheetEditUrl,
     openSpreadsheet,
   };
+
+  if (isEnabled()) {
+    setupSheets().then((r) => {
+      if (r && r.ok) console.info("Tandem Sheets: karty Kable a Moduly pripravené.");
+      if (r && !r.ok && !r.skipped) console.warn("Tandem Sheets setup:", r.error);
+    });
+  }
 })(window);
