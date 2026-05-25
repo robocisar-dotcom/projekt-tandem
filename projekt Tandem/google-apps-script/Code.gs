@@ -84,8 +84,21 @@ function handleRequest_(data) {
     var headers = isModul ? HEADERS_MODUL : HEADERS_KABEL;
 
     var sheet = getOrCreateSheet_(ss, sheetName, headers);
-    var row = buildRow_(data, isModul);
     var rowIndex = findRowByMarkerId_(sheet, markerId, headers.length);
+
+    if (action === "delete") {
+      if (rowIndex > 0) {
+        sheet.deleteRow(rowIndex);
+      }
+      return jsonResponse_({
+        ok: true,
+        sheet: sheetName,
+        markerId: markerId,
+        deleted: rowIndex > 0,
+      });
+    }
+
+    var row = buildRow_(data, isModul);
 
     if (rowIndex > 0) {
       sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);

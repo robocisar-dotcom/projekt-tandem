@@ -174,6 +174,17 @@
     });
   }
 
+  function deleteMarker(record) {
+    if (!isEnabled()) return Promise.resolve({ skipped: true });
+    if (!record || !record.markerId) return Promise.resolve({ skipped: true });
+
+    const payload = Object.assign(basePayload(), record, {
+      action: "delete",
+    });
+    debounceTimers.delete(String(record.markerId));
+    return post_(payload);
+  }
+
   /** @deprecated použite saveMarker */
   function appendMarker(type, name) {
     return saveMarker({
@@ -196,6 +207,7 @@
   global.TandemSheets = {
     isEnabled,
     saveMarker,
+    deleteMarker,
     appendMarker,
     setupSheets,
     getSpreadsheetEditUrl,

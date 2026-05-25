@@ -468,6 +468,22 @@ if (btnOpenSheets) {
   });
 
   function removeMarker(el) {
+    if (window.TandemSheets?.isEnabled?.() && isDetailMarker(el)) {
+      setSheetsSyncStatus("Mazem polozku z tabulky...", "");
+      window.TandemSheets
+        .deleteMarker({
+          type: el.dataset.type,
+          markerId: el.dataset.markerId || "",
+        })
+        .then((r) => {
+          if (!r || r.skipped) return;
+          if (r.ok) {
+            setSheetsSyncStatus("Polozka odstranena z Google Sheets.", "ok");
+            return;
+          }
+          setSheetsSyncStatus(r.error || "Vymazanie z tabulky zlyhalo.", "error");
+        });
+    }
     if (openMarker === el) closePanel();
     el.remove();
     updateEmpty();
