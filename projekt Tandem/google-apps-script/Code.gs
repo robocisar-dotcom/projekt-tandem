@@ -50,6 +50,12 @@ function setupTandemSheets() {
   setupAllSheets_(ss);
 }
 
+/** Vymaze vsetky riadky pod hlavickou na kartach Kable a Moduly */
+function clearTandemSheets() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  clearAllSheets_(ss);
+}
+
 function parseBody_(e) {
   if (!e || !e.postData || !e.postData.contents) return {};
   try {
@@ -70,6 +76,16 @@ function handleRequest_(data) {
         ok: true,
         sheets: [SHEET_KABEL, SHEET_MODUL],
         message: "Karty Kable a Moduly sú pripravené.",
+      });
+    }
+
+    if (action === "clear") {
+      setupAllSheets_(ss);
+      clearAllSheets_(ss);
+      return jsonResponse_({
+        ok: true,
+        sheets: [SHEET_KABEL, SHEET_MODUL],
+        message: "Karty Kable a Moduly su vycistene.",
       });
     }
 
@@ -121,6 +137,18 @@ function handleRequest_(data) {
 function setupAllSheets_(ss) {
   getOrCreateSheet_(ss, SHEET_KABEL, HEADERS_KABEL);
   getOrCreateSheet_(ss, SHEET_MODUL, HEADERS_MODUL);
+}
+
+function clearAllSheets_(ss) {
+  clearSheetRows_(getOrCreateSheet_(ss, SHEET_KABEL, HEADERS_KABEL));
+  clearSheetRows_(getOrCreateSheet_(ss, SHEET_MODUL, HEADERS_MODUL));
+}
+
+function clearSheetRows_(sheet) {
+  var last = sheet.getLastRow();
+  if (last > 1) {
+    sheet.deleteRows(2, last - 1);
+  }
 }
 
 function buildRow_(data, isModul) {
