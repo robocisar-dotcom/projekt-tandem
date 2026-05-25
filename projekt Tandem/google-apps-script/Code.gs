@@ -1,16 +1,13 @@
 /**
  * Tandem → Google Sheets
  * Karty: Kable, Moduly
- * Riadok sa hľadá podľa stĺpca „Názov“ (nie ID).
+ * Riadok sa hľadá podľa markerId (stĺpec ID na konci, môže byť skrytý).
  */
 
 var SPREADSHEET_ID = "1K5OpFtFQijyR0A9sfa3dIDhmxkhUVdsGcwCkuYh3nBk";
 
 var SHEET_KABEL = "Kable";
 var SHEET_MODUL = "Moduly";
-
-/** Stĺpec „Názov“ položky na pláne (1-based) */
-var COL_NAZOV = 2;
 
 var HEADERS_KABEL = [
   "Názov plánu",
@@ -23,6 +20,7 @@ var HEADERS_KABEL = [
   "Pozícia X %",
   "Pozícia Y %",
   "Aktualizované",
+  "ID",
 ];
 
 var HEADERS_MODUL = [
@@ -34,6 +32,7 @@ var HEADERS_MODUL = [
   "Pozícia X %",
   "Pozícia Y %",
   "Aktualizované",
+  "ID",
 ];
 
 function doPost(e) {
@@ -74,28 +73,19 @@ function handleRequest_(data) {
       });
     }
 
+    var markerId = String(data.markerId || "").trim();
+    if (!markerId) {
+      return jsonResponse_({ ok: false, error: "Chýba markerId" });
+    }
+
     var type = String(data.type || "").toLowerCase();
     var isModul = type === "modul";
     var sheetName = isModul ? SHEET_MODUL : SHEET_KABEL;
     var headers = isModul ? HEADERS_MODUL : HEADERS_KABEL;
 
-    var label = String(data.label || data.name || "").trim();
-    if (!label) {
-      label = isModul ? "Modul" : "Kábel";
-    }
-
-    var previousLabel = String(data.previousLabel || "").trim();
-
     var sheet = getOrCreateSheet_(ss, sheetName, headers);
-    var row = buildRow_(data, isModul, label);
-
-    var rowIndex = -1;
-    if (previousLabel && previousLabel !== label) {
-      rowIndex = findRowByName_(sheet, previousLabel);
-    }
-    if (rowIndex < 0) {
-      rowIndex = findRowByName_(sheet, label);
-    }
+    var row = buildRow_(data, isModul);
+    var rowIndex = findRowByMarkerId_(sheet, markerId, headers.length);
 
     if (rowIndex > 0) {
       sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
@@ -106,8 +96,8 @@ function handleRequest_(data) {
     return jsonResponse_({
       ok: true,
       sheet: sheetName,
-      label: label,
-      previousLabel: previousLabel || null,
+      markerId: markerId,
+      label: String(data.label || data.name || ""),
       updated: rowIndex > 0,
     });
   } catch (err) {
@@ -120,13 +110,19 @@ function setupAllSheets_(ss) {
   getOrCreateSheet_(ss, SHEET_MODUL, HEADERS_MODUL);
 }
 
-function buildRow_(data, isModul, label) {
+function buildRow_(data, isModul) {
   var now = new Date();
+  var label = String(data.label || data.name || "").trim();
+  if (!label) {
+    label = isModul ? "Modul" : "Kábel";
+  }
+  var markerId = String(data.markerId || "");
   var tail = [
     String(data.notes || ""),
     numOrEmpty_(data.posX),
     numOrEmpty_(data.posY),
     now,
+    markerId,
   ];
 
   if (isModul) {
@@ -161,12 +157,13 @@ function numOrEmpty_(val) {
   return isNaN(n) ? "" : n;
 }
 
-function findRowByName_(sheet, name) {
-  var search = String(name || "").trim();
+function findRowByMarkerId_(sheet, markerId, idColIndex) {
+  var search = String(markerId || "").trim();
   if (!search) return -1;
   var last = sheet.getLastRow();
   if (last < 2) return -1;
-  var data = sheet.getRange(2, COL_NAZOV, last, COL_NAZOV).getValues();
+  var col = idColIndex || sheet.getLastColumn();
+  var data = sheet.getRange(2, col, last, col).getValues();
   for (var i = 0; i < data.length; i++) {
     if (String(data[i][0]) === search) {
       return i + 2;
@@ -189,6 +186,11 @@ function getOrCreateSheet_(ss, name, headers) {
     sheet = ss.insertSheet(name);
   }
   ensureHeaders_(sheet, headers);
+  try {
+    sheet.hideColumns(headers.length);
+  } catch (e) {
+    /* stĺpec ID už môže byť skrytý */
+  }
   return sheet;
 }
 

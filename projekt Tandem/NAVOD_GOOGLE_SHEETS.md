@@ -9,13 +9,14 @@ Keď presuniete **Kábel** alebo **Modul** z panela na plán, meno sa automatick
 
 Ukladajú sa **všetky údaje z panela** (pri každej zmene sa riadok aktualizuje podľa ID značky).
 
-Riadok sa **vyhľadáva podľa stĺpca „Názov“** (nie číselné ID). Pri premenovaní na pláne sa aktualizuje ten istý riadok v tabuľke.
+Riadok sa **vyhľadáva podľa `markerId`** (stĺpec **ID** na konci riadku, v tabuľke môže byť skrytý).  
+Stĺpec **Názov** je viditeľný názov na pláne — pri premenovaní sa aktualizuje v tom istom riadku (nový riadok sa nevytvorí).
 
 ### List **Kable**
-| Názov plánu | Názov | Dostupnosť | Natiahnutý | Tenant | Abutisant | Poznámky | Pozícia X % | Pozícia Y % | Aktualizované |
+| Názov plánu | Názov | … | Aktualizované | ID (skrytý) |
 
 ### List **Moduly**
-| Názov plánu | Názov | Dostupnosť | Osadený | Poznámky | Pozícia X % | Pozícia Y % | Aktualizované |
+| Názov plánu | Názov | … | Aktualizované | ID (skrytý) |
 
 ---
 
