@@ -1,5 +1,8 @@
-/**
+﻿/**
  * Google Sheets — upsert značky (všetky polia z panela).
+ *
+ * DÔLEŽITÉ (Netlify / CORS): postViaNoCorsGet_ nesmie byť odstránené.
+ * Pri blokovaní POST/GET z prehliadača odošle GET v režime no-cors (opaque).
  */
 (function (global) {
   const debounceTimers = new Map();
@@ -97,8 +100,10 @@
       });
       const text = await res.text();
       const parsed = parseAppsScriptResponse(res, text);
-      if (!parsed.ok && parsed.error && parsed.error.indexOf("Apps Script") !== -1) {
-        return postViaGet_(payload);
+      if (!parsed.ok) {
+        const viaGet = await postViaGet_(payload).catch(() => null);
+        if (viaGet && viaGet.ok) return viaGet;
+        return postViaNoCorsGet_(payload);
       }
       return parsed;
     } catch (err) {
@@ -179,3 +184,4 @@
     });
   }
 })(window);
+

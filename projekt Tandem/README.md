@@ -38,12 +38,23 @@ Po **push na `main`** sa stránka nasadí automaticky.
 
 Konfigurácia v `sheets-config.js`. Podrobný návod: **`NAVOD_GOOGLE_SHEETS.md`**.
 
+### Zápis z Netlify (CORS)
+
+V `sheets.js` je reťazec: **POST → GET → `postViaNoCorsGet_`** (GET s `mode: "no-cors"`).  
+Funkciu **`postViaNoCorsGet_` neodstraňovať** — bez nej zápis z live stránky často zlyhá.
+
 ### Po zmene `google-apps-script/Code.gs`
 
-1. Otvorte tabuľku → **Rozšírenia → Apps Script**
-2. Vložte nový kód z `Code.gs`
-3. **Nasadiť → Nové nasadenie** (Webová aplikácia, prístup Ktokoľvek)
-4. Ak sa zmení URL, aktualizujte `webAppUrl` v `sheets-config.js` a pushnite na GitHub
+1. Vložte nový kód do **Apps Script** (z `google-apps-script/Code.gs`)
+2. Spustite **`setupTandemSheets`** (vytvorí karty **Kable** a **Moduly**)
+3. **Nasadiť → Nové nasadenie** → Webová aplikácia, prístup **Ktokoľvek**
+4. Ak sa zmení `/exec` URL, aktualizujte `webAppUrl` v `sheets-config.js`
+5. `git add "projekt Tandem"` → commit → `git push origin main` (Netlify nasadí samo)
+
+### Kontrola po deployi
+
+- https://aquamarine-sunburst-ed5bc5.netlify.app/sheets-config.js — `spreadsheetId`, `webAppUrl`
+- https://aquamarine-sunburst-ed5bc5.netlify.app/sheets.js — musí obsahovať `postViaNoCorsGet_`
 
 ---
 

@@ -288,7 +288,11 @@ if (btnOpenSheets) {
     window.TandemSheets.saveMarker(record, opts).then((r) => {
       if (!r || r.skipped) return;
       if (r.ok) {
-        setSheetsSyncStatus("Uložené v Google Sheets (list " + (record.type === "modul" ? "Moduly" : "Kable") + ").", "ok");
+        const list = record.type === "modul" ? "Moduly" : "Kable";
+        const msg = r.opaque
+          ? "Odoslané do Google Sheets (list " + list + ") — overte v tabuľke."
+          : "Uložené v Google Sheets (list " + list + ").";
+        setSheetsSyncStatus(msg, "ok");
         return;
       }
       setSheetsSyncStatus(r.error || "Zápis do tabuľky zlyhal.", "error");
